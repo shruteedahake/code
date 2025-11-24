@@ -1,0 +1,77 @@
+from typing import Dict, Any
+from .service import construction_type, distance_to_fire_hydrant, distance_to_fire_station, read_excel_blob, read_json_from_blob, extract_address, write_json_output_to_blob, construct_blob_url, extract_container_blob_and_filename, get_coordinates_from_openweather, check_earthquake_risk, check_flood_zone, year_built, find_field_case_insensitive
+from datetime import datetime
+
+async def capture_risk_data(blob_url_or_name: str) -> dict:
+    try:
+        container, blob_path, filename = extract_container_blob_and_filename(blob_url_or_name)
+        json_data = read_json_from_blob(filename)
+
+        default_address = "One State Farm Plaza, Bloomington, Illinois 61710"
+        address_value = None
+
+if "Name And Mailing Address" in address_section or "STREET ADDRESS" in address_section:
+            field_value = (address_section.get("Name And Mailing Address") or address_section.get("STREET ADDRESS") or "").strip()
+
+            if not field_value:
+                return {"error": "No address found in Address section."}
+            address_value = field_value.split(", confidence")[0].strip()
+        else:
+            all_empty = True
+            for v in address_section.values():
+                if v:
+                    all_empty = False
+                    break
+            if all_empty:
+                return {"error": "Data not found"}
+            else:
+                address_value = default_address
+
+address = extract_address(address_value)
+        print(address)
+        coordinates = get_coordinates_from_openweather(address)
+
+        excel_filename = "Fetched_emails_data_new.xlsx" 
+        df = read_excel_blob(excel_filename)
+
+        latest_reference_number = df["Unique refrence Number"].iloc[-1]
+ 
+        if not isinstance(coordinates, dict) or "latitude" not in coordinates or "longitude" not in coordinates:
+            result = {
+                "coordinates": coordinates,
+                "earthquake_prone": "Unknown (geocoding failed)",
+                "construction_type": "Unknown",
+                "distance_to_fire_hydrant": "Unknown",
+                "distance_to_fire_station": "Unknown",
+                "year_built": "Unknown",
+                "reference number": "Unknown"
+            }
+        else:
+            latitude = coordinates["latitude"]
+            longitude = coordinates["longitude"]
+ 
+            earthquake_risk=check_earthquake_risk(latitude, longitude)
+            flood_zone_status=check_flood_zone(latitude, longitude)
+
+            result = {
+                "coordinates": coordinates,
+                "earthquake_count": earthquake_risk,
+                "flood_zone": flood_zone_status,
+                "construction_type": construction_type(),
+                "distance_to_fire_hydrant": f"{distance_to_fire_hydrant()} FT",
+                "distance_to_fire_station": f"{distance_to_fire_station()} ML",
+                "year_built": year_built(),
+                "reference number": latest_reference_number
+            }
+ 
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        blob_filename = f"risk_data_capture_output_{timestamp}.json"
+ 
+        write_json_output_to_blob(blob_filename, result)
+ 
+        blob_url = construct_blob_url(blob_filename, blob_url_or_name)
+ 
+        return {"blob_file_path": blob_url}
+ 
+    except Exception as e:
+        return {"error": f"Failed to process blob file: {str(e)}"}
