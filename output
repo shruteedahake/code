@@ -1,0 +1,34 @@
+{
+  "Broker": {
+    "Agency Customer Id": "542198, confidence - 0.972",
+    "Agency": "Prime Brokers Ltd., confidence - 0.95",
+    "Contact Name": "William Grey, confidence - 0.964",
+    "Email Address": "greywilliam@primebrokers.com, confidence - 0.969",
+    "Phone": "+1 202 406 789, confidence - 0.831",
+    "Producer's Signature": "William Grey, confidence - 0.569",
+    "Producer's Name Please Print": "William Grey, confidence - 0.448",
+    "total_confidence": 0.915
+  },
+  "Carrier": {
+    "Carrier": "Phoenix Insurers Ltd., confidence - 0.931",
+    "total_confidence": 0.931
+  },
+  "Insured": {
+    "Name And Mailing Address": "GreenGen, 100 East Avenue, New York City, New York, USA, confidence - 0.947",
+    "Individual": ":unselected:, confidence - 0.882",
+    "Joint Venture": ":unselected:, confidence - 0.656",
+    "LLC": ":unselected:, confidence - 0.685",
+    "Not For Profit Org": ":unselected:, confidence - 0.684",
+    "Partnership": ":unselected:, confidence - 0.682",
+    "Subchapter S Corporation": ":unselected:, confidence - 0.685",
+    "Trust": ":unselected:, confidence - 0.738",
+    "Other Corporation": ":unselected:, confidence - 0.368",
+    "Corporation": ":selected:, confidence - 0.978",
+    "Subchapter S Corporation 2": ":unselected:, confidence - 0.607",
+    "LLC 2": ":unselected:, confidence - 0.661",
+    "Partnership 2": ":unselected:, confidence - 0.595",
+    "Loss History Check If None": ":selected:, confidence - 0.856",
+    "Applicant's Initials": "BH, confidence - 0.981",
+    "total_confidence": 0.7231666666666666
+  }
+}
