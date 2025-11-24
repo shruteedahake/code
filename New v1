@@ -1,0 +1,135 @@
+from typing import Dict, Any
+from datetime import datetime
+
+from .service import (
+    construction_type,
+    distance_to_fire_hydrant,
+    distance_to_fire_station,
+    read_excel_blob,
+    read_json_from_blob,
+    extract_address,
+    write_json_output_to_blob,
+    construct_blob_url,
+    extract_container_blob_and_filename,
+    get_coordinates_from_openweather,
+    check_earthquake_risk,
+    check_flood_zone,
+    year_built,
+)
+
+
+# ---------------------------------------------------------
+# Helper: Dynamically find any address-like field in JSON
+# ---------------------------------------------------------
+def find_address_field(json_data: dict) -> str | None:
+    """
+    Searches all sections & fields to find any address-like field.
+    Returns cleaned field value or None if not found.
+    """
+
+    ADDRESS_KEYS = [
+        "name and mailing address",
+        "mailing address",
+        "street address",
+        "address",
+        "insured address",
+        "applicant address",
+        "location address",
+    ]
+
+    for section_name, section_data in json_data.items():
+        if not isinstance(section_data, dict):
+            continue
+
+        for field_name, field_value in section_data.items():
+            if not isinstance(field_value, str):
+                continue
+
+            normalized = field_name.lower().strip()
+
+            # If the field name resembles any known address pattern
+            if any(key in normalized for key in ADDRESS_KEYS):
+                cleaned = field_value.split(", confidence")[0].strip()
+                return cleaned
+
+    return None
+
+
+# ---------------------------------------------------------
+# Main Handler
+# ---------------------------------------------------------
+async def capture_risk_data(blob_url_or_name: str) -> dict:
+    try:
+        # Extract container + file
+        container, blob_path, filename = extract_container_blob_and_filename(blob_url_or_name)
+        json_data = read_json_from_blob(filename)
+
+        # --------------------------------------
+        # 1. Extract Address Dynamically
+        # --------------------------------------
+        address_value = find_address_field(json_data)
+
+        if not address_value:
+            return {"error": "No address found in input JSON."}
+
+        address = extract_address(address_value)
+        print("Extracted Address:", address)
+
+        # --------------------------------------
+        # 2. Get Latitude / Longitude
+        # --------------------------------------
+        coordinates = get_coordinates_from_openweather(address)
+
+        # Read Excel for latest reference number
+        excel_filename = "Fetched_emails_data_new.xlsx"
+        df = read_excel_blob(excel_filename)
+        latest_reference_number = df["Unique refrence Number"].iloc[-1]
+
+        # --------------------------------------
+        # 3. If geocoding fails
+        # --------------------------------------
+        if not isinstance(coordinates, dict) or "latitude" not in coordinates or "longitude" not in coordinates:
+            result = {
+                "coordinates": coordinates,
+                "earthquake_prone": "Unknown (geocoding failed)",
+                "construction_type": "Unknown",
+                "distance_to_fire_hydrant": "Unknown",
+                "distance_to_fire_station": "Unknown",
+                "year_built": "Unknown",
+                "reference number": latest_reference_number,
+            }
+
+        # --------------------------------------
+        # 4. If geocoding succeeds
+        # --------------------------------------
+        else:
+            latitude = coordinates["latitude"]
+            longitude = coordinates["longitude"]
+
+            earthquake_risk = check_earthquake_risk(latitude, longitude)
+            flood_zone_status = check_flood_zone(latitude, longitude)
+
+            result = {
+                "coordinates": coordinates,
+                "earthquake_count": earthquake_risk,
+                "flood_zone": flood_zone_status,
+                "construction_type": construction_type(),
+                "distance_to_fire_hydrant": f"{distance_to_fire_hydrant()} FT",
+            "distance_to_fire_station": f"{distance_to_fire_station()} ML",
+                "year_built": year_built(),
+                "reference number": latest_reference_number,
+            }
+
+        # --------------------------------------
+        # 5. Save Output JSON to Blob
+        # --------------------------------------
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        blob_filename = f"risk_data_capture_output_{timestamp}.json"
+
+        write_json_output_to_blob(blob_filename, result)
+        blob_url = construct_blob_url(blob_filename, blob_url_or_name)
+
+        return {"blob_file_path": blob_url}
+
+    except Exception as e:
+        return {"error": f"Failed to process blob file: {str(e)}"}
