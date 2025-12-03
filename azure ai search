@@ -64,3 +64,18 @@ references =[]
         references.append(result.split(":")[0])
     st.markdown("### References:")
     st.write(" , ".join(set(references)))
+
+
+#error5
+The documents you referenced (links to ACORD forms such as Evidence of Property Insurance, Acord-139, and Acord-140) are sample/template forms. In the excerpted text you provided, the agency’s name is indicated with a placeholder like:
+
+Agency's name and address
+
+or
+
+Enter text: The full name of the producer / agency.
+
+There is no actual agency name filled in—these are instructions or sample/text fields, not completed forms with a real agency listed. If you have a completed form with real data, the agency name would be shown where it says "Agency's name and address" or similar.
+
+Summary:
+The provided document excerpts do not contain a specific agency name—they only show where the agency name should be entered on the form.
