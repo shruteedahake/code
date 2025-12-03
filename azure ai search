@@ -16,3 +16,13 @@ Parameter name: semanticConfiguration
 Exception Details:      (UnknownSemanticConfiguration) Unknown semantic configuration 'default'.
         Code: UnknownSemanticConfiguration
         Message: Unknown semantic configuration 'default'.
+
+#error3
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jarvis/shrutee/AZURE-AI-SEARCH-main/app.py", line 65, in <module>
+    results = [doc[KB_FIELDS_SOURCEPAGE] + ": " + doc[KB_FIELDS_CONTENT].replace("\n", "").replace("\r", "") for doc in r]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jarvis/shrutee/AZURE-AI-SEARCH-main/app.py", line 65, in <listcomp>
+    results = [doc[KB_FIELDS_SOURCEPAGE] + ": " + doc[KB_FIELDS_CONTENT].replace("\n", "").replace("\r", "") for doc in r]
+               ~~~^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'sourcepage'
