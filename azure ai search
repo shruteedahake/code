@@ -26,3 +26,41 @@ Exception Details:      (UnknownSemanticConfiguration) Unknown semantic configur
     results = [doc[KB_FIELDS_SOURCEPAGE] + ": " + doc[KB_FIELDS_CONTENT].replace("\n", "").replace("\r", "") for doc in r]
                ~~~^^^^^^^^^^^^^^^^^^^^^^
 KeyError: 'sourcepage'
+
+
+#error4
+References:
+https
+
+Answer is:
+replycoroutinegenerate_answer
+No docs available
+cr_awaitproperty	object being awaited on, or None
+cr_codecode	<code object generate_answer at 0x7fb5ead283c0, file "/home/jarvis/shrutee/AZURE-AI-SEARCH-main/azure_openai.py", line 27>
+cr_frameproperty	No docs available
+cr_originNoneType	None
+cr_runningproperty	No docs available
+cr_suspendedproperty	No docs available
+closebuiltin_function_or_method	close() -> raise GeneratorExit inside coroutine.
+sendbuiltin_function_or_method	send(arg) -> send 'arg' into coroutine,
+throwbuiltin_function_or_method	throw(value)
+
+KB_FIELDS_CATEGORY = os.environ.get("KB_FIELDS_CATEGORY") or category
+filter = "category ne '{}'".format(exclude_category.replace("'", "''")) if exclude_category else None
+    r = search_client.search(user_input, 
+                            filter=filter,
+                            query_type=QueryType.SEMANTIC, 
+                            # query_type="simple",   # added to remove semantic search
+                            query_language="en-us", 
+                            query_speller="lexicon", 
+                            # semantic_configuration_name="default", 
+                            semantic_configuration_name = "knowledgesource-1764748475550-semantic-configuration",   # for jarvis1
+                            top=3)
+    results = [doc[KB_FIELDS_SOURCEPAGE] + ": " + doc[KB_FIELDS_CONTENT].replace("\n", "").replace("\r", "") for doc in r]
+    content = "\n".join(results)
+
+references =[]
+    for result in results:
+        references.append(result.split(":")[0])
+    st.markdown("### References:")
+    st.write(" , ".join(set(references)))
