@@ -79,3 +79,9 @@ There is no actual agency name filled in—these are instructions or sample/text
 
 Summary:
 The provided document excerpts do not contain a specific agency name—they only show where the agency name should be entered on the form.
+
+delete the data in index when file in blob is deleted.
+,
+"dataDeletionDetectionPolicy": {
+  "@odata.type": "#Microsoft.Azure.Search.NativeBlobSoftDeleteDeletionDetectionPolicy"
+}
