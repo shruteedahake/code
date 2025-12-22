@@ -32,3 +32,64 @@
     "total_confidence": 0.7231666666666666
   }
 }
+
+
+####################################################################################################################################
+
+from azure.core.credentials import AzureKeyCredential
+from azure.search.documents.indexes import SearchIndexClient
+from azure.search.documents.indexes.models import *
+from azure.search.documents import SearchClient
+from azure.search.documents.models import QueryType
+from service import create_prompt, generate_answer, search_client
+from dotenv import load_dotenv
+import os
+import re
+
+load_dotenv()
+
+semantic_configuration_name = os.getenv("SEMANTIC_CONFIGURATION_NAME", "")
+
+async def ai_search(user_input):
+    r = search_client.search(
+        user_input,
+        query_type=QueryType.SEMANTIC,  
+        query_language="en-us",
+        query_speller="lexicon",   
+        semantic_configuration_name=semantic_configuration_name,
+        top=3, 
+        select=["uid", "snippet"]  
+    )
+    
+    KB_FIELDS_SOURCEPAGE = "uid"
+    KB_FIELDS_CONTENT = "snippet"
+
+    results = [doc[KB_FIELDS_SOURCEPAGE] + ": " + doc[KB_FIELDS_CONTENT].replace("\n", "").replace("\r", "") for doc in r] 
+
+    content = "\n".join(results)
+
+    references = []
+    for result in results:
+        ref = result.split(":", 1)[0]  
+        references.append(ref)  
+
+    unique_references = list(set(references)) 
+
+    conversation = [
+        {"role": "system", "content": "Assistant is a great language model formed by OpenAI."}
+    ]
+
+    prompt = await create_prompt(content, user_input)    
+
+    conversation.append({"role": "assistant", "content": prompt})
+    conversation.append({"role": "user", "content": user_input})
+
+    reply = await generate_answer(conversation)
+
+    reply=re.sub(r"\*\*","", reply)
+    reply=re.sub(r"\b(/na|n/a|N/A)\b","", reply, flags=re.IGNORECASE)
+    reply=reply.replace("\n", " ").replace("\r", " ")
+
+    return {
+        "answer": reply
+    }
